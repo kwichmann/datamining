@@ -7,7 +7,12 @@
 </head>
 <body>
 	<div class="canvas"></div>
-	<div class="sliders"></div>
+	<div class="sliders">
+		<div class="fixed">Fixed</div>
+		<div class="other">Movable</div>
+		<div class="min">Minimum neighbors</div>
+		<div class="button"></div>
+	</div>
 
 	<script type="text/javascript">
 		var points = [];
@@ -15,35 +20,31 @@
 		
 		var fixed_points = 5;
 		var other_points = 25;
-		
 		var neighbor_min = 2;
+		
+		var fixed_slider, other_slider, min_slider, start_button;
 
 		function setup() {
 			var canvas = createCanvas(800, 600);
 			canvas.parent(select(".canvas"));
 
-			var sliders = select(".sliders");
-			
-			for (var i = 0; i < fixed_points; i++) {
-				points.push(new Point(true));
-			}
-			for (var i = 0; i < other_points; i++) {
-				points.push(new Point(false));
-			}
+			var fixed_div = select(".fixed");
+			fixed_slider = createSlider(0, 50, 10);
+			fixed_slider.parent(fixed_div);
 
-			for (var i = 0; i < points.length; i++) {
-				for (var j = 0; j < neighbor_min; j++) {
-					var that = i;
-					while (that == i) {
-						that = Math.floor(random(points.length));
-					}
-					if (points[i].neighbors.indexOf(that) < 0 &&
-						points[that].neighbors.indexOf(i) < 0) {
-						points[i].neighbors.push(that);
-						points[that].neighbors.push(i);
-					}
-				}
-			}			
+			var other_div = select(".other");
+			other_slider = createSlider(0, 200, 25);
+			other_slider.parent(other_div);
+
+			var min_div = select(".min");
+			min_slider = createSlider(1, 10, 2);
+			min_slider.parent(min_div);
+			
+			var button_div = select(".button");
+			start_button = createButton("Reset");
+			start_button.mouseClicked(reset);
+
+			reset();				
 		}
 
 		function draw() {
@@ -111,6 +112,35 @@
 				}
 				mid.div(this.neighbors.length + 1);
 				this.pos = mid.copy();
+			}
+		}
+
+		function reset() {
+			fixed_points = fixed_slider.value();
+			other_points = other_slider.value();
+			neighbor_min = min_slider.value();
+
+			points = [];
+			
+			for (var i = 0; i < fixed_points; i++) {
+				points.push(new Point(true));
+			}
+			for (var i = 0; i < other_points; i++) {
+				points.push(new Point(false));
+			}
+
+			for (var i = 0; i < points.length; i++) {
+				for (var j = 0; j < neighbor_min; j++) {
+					var that = i;
+					while (that == i) {
+						that = Math.floor(random(points.length));
+					}
+					if (points[i].neighbors.indexOf(that) < 0 &&
+						points[that].neighbors.indexOf(i) < 0) {
+						points[i].neighbors.push(that);
+						points[that].neighbors.push(i);
+					}
+				}
 			}
 		}
 	</script>
