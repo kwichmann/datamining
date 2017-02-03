@@ -1,0 +1,25 @@
+{
+  "name": "datamining",
+  "version": "1.0.0",
+  "description": "Simple server",
+  "main": "server.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kwichmann/datamining.git"
+  },
+  "author": "KGW",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kwichmann/datamining/issues"
+  },
+  "homepage": "https://github.com/kwichmann/datamining#readme"
+}

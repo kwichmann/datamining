@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Dolpins - Force directed graph - GEM method</title>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.6/p5.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.6/addons/p5.dom.js"></script>
+</head>
+<body>
+	<h1>Dolphin social network</h1>
+	<h3>- Force directed layout (GEM method)</h3>
+
+	<div class="canvas"></div>
+	<div class="sliders">
+		<div class="spring1">Log-spring constant 1</div>
+		<div class="spring2">Log-spring constant 2</div>
+		<div class="gravity">Gravity</div>
+		<div class="repulsion">Repulsion</div>
+		<div class="random">Random</div>
+		<div class="friction">Friction</div>
+	</div>
+
+	<div class="button"></div>
+
+<script type="text/javascript">
+	var dolphin_file;
+	var number_of_dolphins = 62;
+
+	var dolphins = [];
+	
+	var spring1_slider, spring2_slider, gravity_slider;
+	var repulsion_slider, random_slider, friction_slider, button;
+	
+	var friction = 0.9;
+
+	function preload() {
+		// Preload file
+		dolphin_file = loadStrings("data/dolphins.paj");
+	}
+
+	function setup() {
+		var canvas = createCanvas(600, 600);
+		canvas.parent(select(".canvas"));
+
+		// Create controls
+		var spring1_div = select(".spring1");
+		spring1_slider = createSlider(0, 2, 1, 0.01);
+		spring1_slider.parent(spring1_div);
+
+		var spring2_div = select(".spring2");
+		spring2_slider = createSlider(0, 2, 1, 0.01);
+		spring2_slider.parent(spring2_div);
+
+		var gravity_div = select(".gravity");
+		gravity_slider = createSlider(0, 5, 0.2, 0.1);
+		gravity_slider.parent(gravity_div);
+
+		var repulsion_div = select(".repulsion");
+		repulsion_slider = createSlider(0, 5, 1, 0.1);
+		repulsion_slider.parent(repulsion_div);
+
+		var random_div = select(".random");
+		random_slider = createSlider(0, 3, 0.2, 0.1);
+		random_slider.parent(random_div);
+
+		var friction_div = select(".friction");
+		friction_slider = createSlider(0.5, 1, 0.9, 0.01);
+		friction_slider.parent(friction_div);
+			
+		var button_div = select(".button");
+		start_button = createButton("Reset");
+		start_button.mouseClicked(reset);
+		
+		// Set up dolphins
+		for (var i = 0; i < number_of_dolphins; i++) {
+			dolphins.push(new Dolphin());
+		}
+
+		// Skip the lines that don't contain edge information
+		for (var i = 64; i < dolphin_file.length; i++) {
+			var edge = dolphin_file[i].split(" ");
+			// Change to zero-index
+			var d1 = edge[0] - 1;
+			var d2 = edge[1] - 1;
+			dolphins[d1].neighbors.push(d2);
+			dolphins[d2].neighbors.push(d1);
+		}
+	}
+
+	function draw() {
+		background(220);
+
+		for (var i = 0; i < number_of_dolphins; i++) {
+			dolphins[i].showEdges();
+		}
+
+		for (var i = 0; i < number_of_dolphins; i++) {
+			dolphins[i].show();
+			dolphins[i].update();
+		}
+	}
+
+	function Dolphin() {
+		this.pos = createVector(random(width), random(height));
+		this.vel = createVector(random(10) - 5, random(10) - 5);
+		this.neighbors = [];
+
+		this.showEdges = function() {
+				stroke(0, 0, 255);
+				for (var i = 0; i < this.neighbors.length; i++) {
+					var that = dolphins[this.neighbors[i]];
+					line(this.pos.x, this.pos.y, that.pos.x, that.pos.y);
+				}
+			}
+
+		this.show = function() {
+			fill(map(this.neighbors.length, 1, 12, 100, 255), 0, 0);
+			stroke(51);
+			ellipse(this.pos.x, this.pos.y, 10, 10);
+		}
+
+		this.update = function() {
+			this.pos.add(this.vel);
+			this.vel.mult(friction_slider.value());
+
+			// Spring force
+			var spring_force = createVector(0, 0);
+			for (var i = 0; i < this.neighbors.length; i++) {
+				var that_pos = dolphins[this.neighbors[i]].pos;
+				var unit = that_pos.copy().sub(this.pos).normalize();
+				var d = Math.max(this.pos.dist(that_pos), 1);
+				spring_force.add(unit.mult(spring1_slider.value() * Math.log(d / spring2_slider.value()) / 10));
+			}
+			this.apply_force(spring_force);
+
+			// Gravity
+			var center = createVector(width / 2, height / 2);
+			var unit = center.sub(this.pos).normalize();
+			this.apply_force(unit.mult(gravity_slider.value()));
+
+			// Repulsion force
+			var repulsion = createVector(0, 0);
+			for (i = 0; i < number_of_dolphins; i++) {
+				var that_pos = dolphins[i].pos;
+				var unit = that_pos.copy().sub(this.pos).normalize();
+				var d = this.pos.dist(that_pos);
+				repulsion.add(unit.mult(-repulsion_slider.value() / (d)));
+			}
+			this.apply_force(repulsion);
+
+			// Random force
+			this.apply_force(p5.Vector.random2D().mult(random(random_slider.value())));
+		}
+
+		this.apply_force = function(acc) {
+			this.vel.add(acc);
+		}
+	}
+
+	function reset() {
+		for (i = 0; i < number_of_dolphins; i++) {
+			dolphins[i].pos = createVector(random(width), random(height));
+		}
+	}
+</script>
+</body>
+</html>
